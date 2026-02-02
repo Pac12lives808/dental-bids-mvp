@@ -34,15 +34,9 @@ export default function OfficeCases() {
               </span>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <p className="text-sm font-semibold mb-1">Patient Information</p>
-                <p className="text-sm text-gray-600">Location: {dentalCase.zipCode}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold mb-1">Insurance</p>
-                <p className="text-sm text-gray-600">{dentalCase.insurance || 'None'}</p>
-              </div>
+            <div className="mb-4">
+              <p className="text-sm font-semibold mb-1">Patient Information</p>
+              <p className="text-sm text-gray-600">Location: {dentalCase.zipCode1}</p>
             </div>
 
             <div className="mb-4">
