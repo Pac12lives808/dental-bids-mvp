@@ -37,7 +37,7 @@ export default function OfficeCases() {
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-sm font-semibold mb-1">Patient Information</p>
-                <p className="text-sm text-gray-600">Location: {dentalCase.zipCode1}</p>
+                <p className="text-sm text-gray-600">Location: {dentalCase.zipCode}</p>
               </div>
               <div>
                 <p className="text-sm font-semibold mb-1">Insurance</p>
