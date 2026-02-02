@@ -1,0 +1,156 @@
+// Prisma schema for dental bidding marketplace
+// HIPAA-lean design: minimal PHI, anonymized bidding
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PATIENT
+  OFFICE
+  ADMIN
+}
+
+enum CaseStatus {
+  DRAFT
+  PAYMENT_PENDING
+  ACTIVE
+  AWARDED
+  COMPLETED
+  CANCELLED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  role          UserRole
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  patientProfile  PatientProfile?
+  officeProfile   OfficeProfile?
+  cases           Case[]
+  bids            Bid[]
+  @@index([email])
+}
+
+model PatientProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // NO PHI: only zipcode for anonymized bidding
+  zipcode   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([zipcode])
+}
+
+model OfficeProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  officeName     String
+  address        String
+  city           String
+  state          String
+  zipcode        String
+  phone          String
+  licenseNumber  String
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([zipcode])
+  @@index([state])
+}
+
+model Case {
+  id                String     @id @default(uuid())
+  patientId         String
+  patient           User       @relation(fields: [patientId], references: [id])
+  
+  // Treatment details (controlled, no free-text PHI)
+  treatmentType     String     // e.g., "crown", "root_canal", "implant"
+  toothNumber       String?
+  urgency           String     // "routine", "urgent", "emergency"
+  
+  // Geographic data for anonymized bidding
+  zipcode           String
+  
+  // Attachments stored in S3 (encrypted)
+  xrayS3Key         String?
+  photosS3Keys      String[]   @default([])
+  
+  // Payment tracking
+  stripePaymentId   String?    @unique
+  paymentAmount     Decimal    @default(1.99)  // Fixed $1.99 posting fee
+  
+  status            CaseStatus @default(DRAFT)
+  
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  expiresAt         DateTime?  // Auto-expire after 7 days
+  
+  // Relations
+  bids              Bid[]
+  
+  @@index([patientId])
+  @@index([status])
+  @@index([zipcode])
+  @@index([createdAt])
+}
+
+model Bid {
+  id            String    @id @default(uuid())
+  caseId        String
+  case          Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  officeId      String
+  office        User      @relation(fields: [officeId], references: [id])
+  
+  // Pricing (controlled ranges: $200-$10000)
+  bidAmount     Decimal
+  estimatedTime String    // e.g., "1-2 weeks"
+  notes         String?   // Optional: treatment plan notes
+  
+  status        BidStatus @default(PENDING)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([caseId])
+  @@index([officeId])
+  @@index([status])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String   // e.g., "CASE_CREATED", "BID_SUBMITTED", "PAYMENT_PROCESSED"
+  entityType String  // "Case", "Bid", "Payment"
+  entityId   String
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?    // Additional context
+  timestamp  DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}
