@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Header from '@/components/Header';
-import { dentalCases } from '@/lib/mockData';
+import { mockCases } from '@/lib/mockData';
 
 export default function OfficeCases() {
   const [bidAmounts, setBidAmounts] = useState<{ [caseId: string]: string }>({});
@@ -22,7 +22,7 @@ export default function OfficeCases() {
       <p className="text-gray-600 mb-8">Review and bid on patient dental cases</p>
 
       <div className="space-y-4">
-        {dentalCases.map((dentalCase) => (
+        {mockCases.map((dentalCase) => (
           <div key={dentalCase.id} className="border rounded-lg p-6 bg-white shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div>
