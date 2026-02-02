@@ -28,7 +28,7 @@ export default function OfficeCasesPage() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-xl font-bold">{dentalCase.treatment}</h3>
-                <p className="text-sm text-gray-500">Case #{dentalCase.id} • Submitted {dentalCase.submittedDate}</p>
+                <p className="text-sm text-gray-500">Case #{dentalCase.id} • Submitted {dentalCase.createdAt}</p>
               </div>
               <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
                 {dentalCase.status}
