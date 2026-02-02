@@ -11,10 +11,6 @@ export default function OfficeCases() {
     console.log(`Bid submitted for case ${caseId}: $${bidAmounts[caseId]}`);
   };
 
-  const setAllAmounts = ((e: React.ChangeEvent<HTMLInputElement>, caseId: string) => {
-    setBidAmounts({ ...bidAmounts, [caseId]: e.target.value });
-  });
-
   return (
     <div className="max-w-7xl mx-auto">
       <Header />
@@ -51,7 +47,7 @@ export default function OfficeCases() {
                   type="number"
                   placeholder="Enter bid amount"
                   value={bidAmounts[dentalCase.id] || ''}
-                  onChange={(e) => setAllAmounts({ ...bidAmounts, [dentalCase.id]: e.target.value })}
+                  onChange={(e) => setBidAmounts({ ...bidAmounts, [dentalCase.id]: e.target.value })}
                   className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
                 />
               </div>
