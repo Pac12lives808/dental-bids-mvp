@@ -36,7 +36,7 @@ export default function OfficeCases() {
 
             <div className="mb-4">
               <p className="text-sm font-semibold mb-1">Patient Information</p>
-              <p className="text-sm text-gray-600">Location: {dentalCase.zipCode1}</p>
+              <p className="text-sm text-gray-600">Location: {dentalCase.zipCode}</p>
             </div>
 
             <div className="mb-4">
