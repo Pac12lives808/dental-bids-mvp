@@ -1,29 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { mockCases } from '@/lib/mockData';
+import Header from '../../components/Header';
+import { dentalCases } from '@/lib/mockData';
 
-export default function OfficeCasesPage() {
-  const [bidAmounts, setBidAmounts] = useState<{ [key: number]: string }>({});
+export default function OfficeCases() {
+  const [bidAmounts, setBidAmounts] = useState<{ [caseId: string]: string }>({});
 
-  const handleBidSubmit = (caseId: number) => {
-    const bidAmount = bidAmounts[caseId];
-    if (!bidAmount || parseFloat(bidAmount) <= 0) {
-      alert('Please enter a valid bid amount');
-      return;
-    }
-    // In real app, would submit to API
-    alert(`Bid of $${bidAmount} submitted successfully!`);
-    setBidAmounts({ ...bidAmounts, [caseId]: '' });
+  const handleBidSubmit = (caseId: string) => {
+    console.log(`Bid submitted for case ${caseId}: $${bidAmounts[caseId]}`);
   };
+
+  const setAllAmounts = ((e: React.ChangeEvent<HTMLInputElement>, caseId: string) => {
+    setBidAmounts({ ...bidAmounts, [caseId]: e.target.value });
+  });
 
   return (
     <div className="max-w-7xl mx-auto">
+      <Header />
       <h1 className="text-3xl font-bold mb-2">Available Cases</h1>
       <p className="text-gray-600 mb-8">Review and bid on patient dental cases</p>
 
-      <div className="space-y-6">
-        {mockCases.map((dentalCase) => (
+      <div className="space-y-4">
+        {dentalCases.map((dentalCase) => (
           <div key={dentalCase.id} className="border rounded-lg p-6 bg-white shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -38,8 +37,7 @@ export default function OfficeCasesPage() {
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-sm font-semibold mb-1">Patient Information</p>
-                <p className="text-sm text-gray-600">Age: {dentalCase.patientAge}</p>
-                <p className="text-sm text-gray-600">Location: {dentalCase.location}</p>
+                <p className="text-sm text-gray-600">Location: {dentalCase.zipCode1}</p>
               </div>
               <div>
                 <p className="text-sm font-semibold mb-1">Insurance</p>
@@ -59,7 +57,7 @@ export default function OfficeCasesPage() {
                   type="number"
                   placeholder="Enter bid amount"
                   value={bidAmounts[dentalCase.id] || ''}
-                  onChange={(e) => setBidAmounts({ ...bidAmounts, [dentalCase.id]: e.target.value })}
+                  onChange={(e) => setAllAmounts({ ...bidAmounts, [dentalCase.id]: e.target.value })}
                   className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -73,12 +71,6 @@ export default function OfficeCasesPage() {
           </div>
         ))}
       </div>
-
-      {mockCases.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <p>No cases available at the moment. Check back soon!</p>
-        </div>
-      )}
     </div>
   );
 }
