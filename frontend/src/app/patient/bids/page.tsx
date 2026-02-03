@@ -42,7 +42,7 @@ export default function ViewBidsPage() {
             <h3 className="text-xl font-bold mb-2">{bid.officeName}</h3>
             <div className="text-yellow-400 mb-2">
               {'★'.repeat(Math.floor(bid.rating))}{'☆'.repeat(5 - Math.floor(bid.rating))}
-              <span className="text-gray-600 ml-2">{bid.rating} ({bid.reviewCount} reviews)</span>
+              <span className="text-gray-600 ml-2">{bid.rating}</span>
             </div>
 
             <p className="text-gray-600 text-sm mb-4">{bid.location}</p>
