@@ -6,7 +6,7 @@ import { mockBids } from '@/lib/mockData';
 export default function ViewBidsPage() {
   const [selectedBid, setSelectedBid] = useState<number | null>(null);
 
-  const handleAcceptBid = (bidId: number) => {
+  const handleAcceptBid = (bidId: string) => {
     setSelectedBid(bidId);
     // In real app, would submit to API
     alert('Bid accepted! You will be contacted by the office to schedule your appointment.');
