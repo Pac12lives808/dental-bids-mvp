@@ -30,10 +30,10 @@ export default function ViewBidsPage() {
           <div
             key={bid.id}
             className={`border rounded-lg p-6 ${
-              bid.id === 1 ? 'border-green-500 border-2 relative' : 'border-gray-300'
+              bid.id === '1' ? 'border-green-500 border-2 relative' : 'border-gray-300'
             }`}
           >
-            {bid.id === 1 && (
+            {bid.id === '1' && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                 BEST VALUE
               </div>
