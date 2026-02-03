@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { mockBids } from '@/lib/mockData';
 
 export default function ViewBidsPage() {
-  const [selectedBid, setSelectedBid] = useState<number | null>(null);
+  const [selectedBid, setSelectedBid] = useState<string | null>(null);
 
   const handleAcceptBid = (bidId: string) => {
     setSelectedBid(bidId);
