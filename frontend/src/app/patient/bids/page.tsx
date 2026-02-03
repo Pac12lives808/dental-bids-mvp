@@ -52,9 +52,6 @@ export default function ViewBidsPage() {
             </div>
 
             <div className="space-y-2 mb-4 text-sm">
-              <p><strong>Experience:</strong> {bid.experience}</p>
-              <p><strong>Availability:</strong> {bid.availability}</p>
-              <p><strong>Insurance:</strong> {bid.insuranceAccepted ? 'Accepted' : 'Not accepted'}</p>
             </div>
 
             <button
