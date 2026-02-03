@@ -45,7 +45,6 @@ export default function ViewBidsPage() {
               <span className="text-gray-600 ml-2">{bid.rating}</span>
             </div>
 
-            <p className="text-gray-600 text-sm mb-4">{bid.location}</p>
 
             <div className="mb-4">
               <p className="text-3xl font-bold text-green-600">${bid.price.toLocaleString()}</p>
