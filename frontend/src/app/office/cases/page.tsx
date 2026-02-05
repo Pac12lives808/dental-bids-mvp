@@ -5,18 +5,17 @@ import Header from '@/components/Header';
 import { mockCases } from '@/lib/mockData';
 
 export default function OfficeCases() {
-  const [bidAmounts, setBidAmounts] = useState<{ [caseId: string]: string }>({});
+  const [Provide EstiestimatemateAmounts, setProvide EstiestimatemateAmounts] = useState<{ [caseId: string]: string }>({});
 
-  const handleBidSubmit = (caseId: string) => {
-    console.log(`Bid submitted for case ${caseId}: $${bidAmounts[caseId]}`);
+  const handleProvide EstiestimatemateSubmit = (caseId: string) => {
+    console.log(`Provide Estiestimatemate submitted for case ${caseId}: $${Provide EstiestimatemateAmounts[caseId]}`);
   };
 
   return (
     <div className="max-w-7xl mx-auto">
       <Header />
       <h1 className="text-3xl font-bold mb-2">Available Cases</h1>
-      <p className="text-gray-600 mb-8">Review and bid on patient dental cases</p>
-
+Review and provide estimates on patient dental cases
       <div className="space-y-4">
         {mockCases.map((dentalCase) => (
           <div key={dentalCase.id} className="border rounded-lg p-6 bg-white shadow-sm">
@@ -42,20 +41,20 @@ export default function OfficeCases() {
 
             <div className="flex gap-4 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-semibold mb-1">Your Bid Amount ($)</label>
+                <label className="block text-sm font-semibold mb-1">Your Estimate Amount ($)</label>
                 <input
                   type="number"
-                  placeholder="Enter bid amount"
-                  value={bidAmounts[dentalCase.id] || ''}
-                  onChange={(e) => setBidAmounts({ ...bidAmounts, [dentalCase.id]: e.target.value })}
+                  placeholder="Enter Provide Estiestimatemate amount"
+                  value={Provide EstiestimatemateAmounts[dentalCase.id] || ''}
+                  onChange={(e) => setProvide EstiestimatemateAmounts({ ...Provide EstiestimatemateAmounts, [dentalCase.id]: e.target.value })}
                   className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <button
-                onClick={() => handleBidSubmit(dentalCase.id)}
+                onClick={() => handleProvide EstiestimatemateSubmit(dentalCase.id)}
                 className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
-                Submit Bid
+                Provide Estimate
               </button>
             </div>
           </div>
