@@ -8,6 +8,7 @@ import { CasesModule } from './cases/cases.module';
 import { BidsModule } from './bids/bids.module';
 import { StripeModule } from './stripe/stripe.module';
 import { OfficesModule } from './offices/offices.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 import { RolesGuard } from './auth/roles.guard';
 import { HealthController } from './health/health.controller';
 
@@ -23,6 +24,7 @@ import { HealthController } from './health/health.controller';
     BidsModule,
     StripeModule,
     OfficesModule,
+    SubscriptionModule,
       ],
         controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: RolesGuard }],
