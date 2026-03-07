@@ -1,24 +1,23 @@
-# AWS Infrastructure Backup
+# AWS Infrastructure Backup — Dental Dash Pro
 
-**Created:** March 6, 2026
-**Purpose:** Complete AWS infrastructure documentation for disaster recovery if account is suspended
-**Account ID:** 670833622671
-**Primary Region:** us-east-2 (US East - Ohio)
+**Last Updated:** March 6, 2026  
+**Purpose:** Complete AWS disaster recovery documentation  
+**Account ID:** 670833622671  
+**Region:** us-east-2 (US East — Ohio)  
+**Status:** RDS and EC2 STOPPED to prevent charges (March 6, 2026)
 
 ---
 
-## CRITICAL: Services In Use
-
-If AWS account is suspended, the following services will become unavailable:
+## CRITICAL SERVICES SUMMARY
 
 | Service | Resource | Status | Monthly Cost |
-|---------|----------|--------|-------------|
-| RDS PostgreSQL | dental-bids-db | Running | ~$135.65 |
-| EC2 t3.micro | dental-bids-api | Running | ~$1.48 |
-| Elastic Beanstalk | dental-bids-api env | Running | (EC2 included) |
-| S3 | 3 buckets | Active | ~$0.02 |
+|---------|----------|--------|--------------|
+| RDS PostgreSQL | dental-bids-db | STOPPED (Mar 6) | ~$135.65 |
+| EC2 t3.micro | dental-bids-api | STOPPED (Mar 6) | ~$1.48 |
+| Elastic Beanstalk | dental-bids-api | Suspended | (included) |
+| S3 | dental-bids-phi-2026 | Active | ~$0.02 |
 | CloudWatch | Monitoring | Active | ~$3.35 |
-| VPC | Default VPC | Active | ~$0.67 |
+| VPC | Default VPC us-east-2 | Active | ~$0.67 |
 | Secrets Manager | RDS credentials | Active | ~$0.36 |
 | **TOTAL** | | | **~$153.39/mo** |
 
@@ -26,61 +25,50 @@ If AWS account is suspended, the following services will become unavailable:
 
 ## 1. RDS PostgreSQL Database
 
-### Connection Details
+### Connection Details (VERIFIED FROM ELASTIC BEANSTALK)
 ```
 DB Identifier:   dental-bids-db
-Engine:          PostgreSQL (latest)
-Endpoint:        dental-bids-db.c9q2g02muwb9.us-east-2.rds.amazonaws.com
+Engine:          PostgreSQL
+Endpoint:        dental-bids-db.czyxOtJlpb9p.us-east-2.rds.amazonaws.com
 Port:            5432
-Database Name:   dental_bids (confirm in app)
-Username:        postgres
-Password:        [stored in Secrets Manager - see section 5]
-Instance Class:  db.t3.micro (or similar)
+Database Name:   dentalbids
+Username:        admin
+Password:        Heidi$2016
+Instance Class:  db.t3.micro
 Storage:         400 GB gp2
 Multi-AZ:        Yes
-Backups:         Automated (7-day retention)
 AZ:              us-east-2a
+Backup Retention: 7 days automated
 ```
 
-### Automated Backup Status
-- AWS RDS automated backups are enabled
-- Snapshots available in AWS console under RDS > Snapshots
-- If account is suspended, snapshots may still be accessible for 30 days
-
-### How to Export Database (Run Locally or on EC2)
+### Step 1 — Export Database (Run This Command Locally)
 ```bash
-# Option 1: From local machine with VPN/tunnel to RDS
-pg_dump \
-  -h dental-bids-db.c9q2g02muwb9.us-east-2.rds.amazonaws.com \
-  -U postgres \
-  -d dental_bids \
+# IMPORTANT: Run this BEFORE stopping RDS, or while RDS is running
+PGPASSWORD='Heidi$2016' pg_dump \
+  -h dental-bids-db.czyxOtJlpb9p.us-east-2.rds.amazonaws.com \
+  -U admin \
+  -d dentalbids \
   -F c \
   -f dental_bids_backup_$(date +%Y%m%d).dump
 
-# Option 2: SSH into EC2 then pg_dump
-ssh -i dental-bids-key.pem ec2-user@3.149.114.36
-pg_dump -h dental-bids-db.c9q2g02muwb9.us-east-2.rds.amazonaws.com \
-  -U postgres -d dental_bids -F c -f /tmp/dental_bids_backup.dump
-scp -i dental-bids-key.pem ec2-user@3.149.114.36:/tmp/dental_bids_backup.dump ./
+# Confirm file created:
+ls -lh dental_bids_backup_*.dump
 
-# Option 3: Plain SQL dump
-pg_dump \
-  -h dental-bids-db.c9q2g02muwb9.us-east-2.rds.amazonaws.com \
-  -U postgres \
-  -d dental_bids \
-  > dental_bids_backup_$(date +%Y%m%d).sql
+# Move to backup folder:
+mkdir -p aws-backups
+mv dental_bids_backup_*.dump aws-backups/
 ```
 
-### How to Restore Database Locally
+### Restore Database Locally
 ```bash
 # Create local database
-createdb dental_bids
+createdb dentalbids
 
-# Restore from custom format dump
-pg_restore -d dental_bids dental_bids_backup_YYYYMMDD.dump
-
-# Restore from SQL dump
-psql dental_bids < dental_bids_backup_YYYYMMDD.sql
+# Restore from dump
+PGPASSWORD='your_local_password' pg_restore \
+  -U postgres \
+  -d dentalbids \
+  aws-backups/dental_bids_backup_YYYYMMDD.dump
 ```
 
 ---
@@ -91,20 +79,21 @@ psql dental_bids < dental_bids_backup_YYYYMMDD.sql
 Name:           dental-bids-api
 Instance ID:    i-0581c22e622405921
 Instance Type:  t3.micro
-State:          Running
-AMI:            (Elastic Beanstalk managed)
+AMI ID:         ami-070b3a6c16cf5db48
+State:          STOPPED (March 6, 2026)
 AZ:             us-east-2a
-Public IPv4:    3.149.114.36
+Public IPv4:    3.149.114.36 (Elastic IP — retained when stopped)
 Elastic IP:     3.149.114.36
 Public DNS:     ec2-3-149-114-36.us-east-2.compute.amazonaws.com
-Key Pair:       (check EC2 > Key Pairs for name)
-Security Group: (check EC2 > Security Groups)
-VPC:            Default VPC us-east-2
+Security Group: sg-079f3c9fc37df3da4
+VPC:            vpc-02c8e837f0e21bd94
+Subnets:        subnet-00777a8327abdc7de, subnet-095333d8afd4b3d9c, subnet-0c23a0ceebe5bf1ed
+Proxy Server:   nginx
 ```
 
-### To Connect via SSH
-```bash
-ssh -i <your-key-pair>.pem ec2-user@3.149.114.36
+### To Restart EC2 Later
+```
+EC2 Console > Instances > i-0581c22e622405921 > Instance State > Start
 ```
 
 ---
@@ -112,60 +101,59 @@ ssh -i <your-key-pair>.pem ec2-user@3.149.114.36
 ## 3. Elastic Beanstalk Application
 
 ```
-Application:    dental-bids-api
-Environment:    dental-bids-api (environment name)
-Platform:       Node.js
-Region:         us-east-2
-Status:         Running
+Application:      dental-bids-backend
+Environment:      dental-bids-api
+Environment ID:   e-mrdpbzdmn9
+Platform:         Node.js 24 on Amazon Linux 2023/6.8.0
+Domain:           dental-bids-api.eba-mkrmmfv.us-east-2.elasticbeanstalk.com
+Deployment:       Single instance
+Service Role:     arn:aws:iam::670833622671:role/aws-elasticbeanstalk-service-role
+EC2 Profile:      aws-elasticbeanstalk-ec2-role
+Proxy:            nginx
+Log Retention:    7 days
 ```
 
-### Environment Variables (Critical - Back These Up)
+### Environment Variables (ALL CONFIRMED)
+```bash
+DB_HOST=dental-bids-db.czyxOtJlpb9p.us-east-2.rds.amazonaws.com
+DB_NAME=dentalbids
+DB_USER=admin
+DB_PASSWORD=Heidi$2016
 ```
-DB_HOST=dental-bids-db.c9q2g02muwb9.us-east-2.rds.amazonaws.com
-DB_NAME=dental_bids
-DB_USER=postgres
-DB_PASSWORD=[retrieve from Secrets Manager - see section 5]
+
+### .env.backup File (Save Locally — Do NOT Commit to GitHub)
+```
+DB_HOST=dental-bids-db.czyxOtJlpb9p.us-east-2.rds.amazonaws.com
+DB_NAME=dentalbids
+DB_USER=admin
+DB_PASSWORD=Heidi$2016
 NODE_ENV=production
 PORT=8080
-```
-
-### How to Export EB Config
-```bash
-# Install EB CLI, then:
-eb init dental-bids-api --region us-east-2
-eb config save --cfg dental-bids-config
-# Saves to .elasticbeanstalk/saved_configs/dental-bids-config.cfg.yml
+STRIPE_SECRET_KEY=[retrieve from code/codebase — search for STRIPE_SECRET_KEY]
+JWT_SECRET=[retrieve from code/codebase — search for JWT_SECRET]
+AWS_REGION=us-east-2
+AWS_S3_BUCKET=dental-bids-phi-2026
 ```
 
 ---
 
 ## 4. S3 Buckets
 
-### Buckets Discovered
-| Bucket Name | Region | Objects | Purpose |
-|-------------|--------|---------|--------|
-| dental-bids-phi-2026 | us-east-2 | 10 | PHI/images (profile photos, logo, HTML) |
-| (bucket 2) | us-east-2 | unknown | (check console) |
-| (bucket 3) | us-east-2 | unknown | (check console) |
+### Confirmed Buckets
+| Bucket | Region | Objects | Purpose |
+|--------|--------|---------|---------|
+| dental-bids-phi-2026 | us-east-2 | 10 | User uploads (images, HTML, logo, PHI files) |
 
-### Objects in dental-bids-phi-2026
-- Profile images (JPEG/PNG)
-- Logo files
-- HTML files
-- ~10 objects total
-
-### How to Download All S3 Files Locally
+### Step 2 — Download All S3 Files
 ```bash
-# Download entire bucket
-aws s3 sync s3://dental-bids-phi-2026 ./s3-backup/dental-bids-phi-2026/ --region us-east-2
+# Sync entire bucket locally
+aws s3 sync s3://dental-bids-phi-2026 ./aws-backups/s3-dental-bids-phi-2026 --region us-east-2
 
-# Download all 3 buckets
-aws s3 ls | awk '{print $3}' | while read bucket; do
-  aws s3 sync s3://$bucket ./s3-backup/$bucket/
-done
+# Verify download
+ls -la ./aws-backups/s3-dental-bids-phi-2026/
 
-# List all objects first
-aws s3 ls s3://dental-bids-phi-2026 --recursive
+# Check all 3 buckets
+aws s3 ls
 ```
 
 ---
@@ -173,84 +161,68 @@ aws s3 ls s3://dental-bids-phi-2026 --recursive
 ## 5. Secrets Manager
 
 ```
-Secret Name:   rds!db-8767e0ef-0b8c-4c40-9879-a5aeb2a6e1e7
-Secret ARN:    arn:aws:secretsmanager:us-east-2:670833622671:secret:rds!db-8767e0ef-0b8c-4c40-9879-a5aeb2a6e1e7-iDf913
-Encryption:    aws/secretsmanager (default)
-Type:          RDS managed secret
+Secret Name:  rds!db-8767e0ef-0b8c-4c40-9879-a5aeb2a6e1e7
+Secret ARN:   arn:aws:secretsmanager:us-east-2:670833622671:secret:rds!db-8767e0ef-0b8c-4c40-9879-a5aeb2a6e1e7-iDf913
+Type:         RDS managed (auto-rotated)
 ```
 
-### Secret Value (Retrieved)
-```json
-{
-  "username": "postgres",
-  "password": "o9k(zG#.t7ey:Rh3chYOG0mF3*hc"
-}
-```
-
-**IMPORTANT:** Store this password in a secure password manager (1Password, Bitwarden, etc.) immediately.
+Note: The Secrets Manager stores the RDS system user (`postgres`). The actual application user is `admin` with password `Heidi$2016` (see Elastic Beanstalk env vars).
 
 ---
 
 ## 6. Route 53 / DNS
 
-- **Hosted Zones:** None configured in Route53
-- **Registered Domains:** None in Route53
-- **DNS Note:** The app is accessed via direct EC2 IP (3.149.114.36) or Elastic Beanstalk URL
-- **Action needed:** If using a custom domain registered elsewhere, document those nameserver settings separately
+- No hosted zones configured
+- No registered domains in Route53
+- App accessed via Elastic Beanstalk domain or EC2 Elastic IP `3.149.114.36`
+- EB URL: `dental-bids-api.eba-mkrmmfv.us-east-2.elasticbeanstalk.com`
 
 ---
 
-## 7. CloudFront
+## 7. Services NOT In Use
 
-- **Distributions:** None configured
-- S3 bucket is accessed directly (not through CloudFront)
-
----
-
-## 8. Services NOT in Use
-
-Confirmed empty/unused:
-- AWS Amplify: No apps
-- AWS Lambda: No functions
-- ECS/ECR: No clusters or containers
-- Systems Manager Parameter Store: No parameters
-- CloudFront: No distributions
-- Route53: No hosted zones
+| Service | Status |
+|---------|--------|
+| AWS Amplify | No apps |
+| AWS Lambda | No functions |
+| ECS/ECR | No clusters |
+| CloudFront | No distributions |
+| Route53 | No hosted zones |
+| Parameter Store | No parameters |
 
 ---
 
-## 9. VPC Configuration
+## 8. VPC Networking
 
 ```
-Region:   us-east-2
-VPC Type: Default VPC
-Subnets:  Default subnets in us-east-2a, us-east-2b, us-east-2c
+VPC ID:    vpc-02c8e837f0e21bd94
+Region:    us-east-2
+Subnets:   subnet-00777a8327abdc7de (us-east-2a)
+           subnet-095333d8afd4b3d9c (us-east-2b)
+           subnet-0c23a0ceebe5bf1ed (us-east-2c)
+SG (API):  sg-079f3c9fc37df3da4
 ```
 
-### To Rebuild VPC for New Environment
-```bash
-# Default VPC can be recreated with:
-aws ec2 create-default-vpc --region us-east-2
-
-# Security groups to recreate:
-# - Allow inbound 5432 from EC2 security group (for RDS)
-# - Allow inbound 80/443/8080 from 0.0.0.0/0 (for API)
-# - Allow inbound 22 from your IP (for SSH)
+### Security Group Rules to Recreate
+```
+Inbound: Port 80   (HTTP)   from 0.0.0.0/0
+Inbound: Port 443  (HTTPS)  from 0.0.0.0/0
+Inbound: Port 8080 (App)    from 0.0.0.0/0
+Inbound: Port 22   (SSH)    from your IP only
+Inbound: Port 5432 (PG)     from EC2 security group
 ```
 
 ---
 
-## 10. Billing Risk Assessment
+## 9. Billing (March 2026)
 
 ```
-Billing Period:     March 1-31, 2026
-Current Bill:       USD $153.39 (Pending)
-Bill Status:        PENDING - SUSPENSION RISK
-Top Cost Driver:    RDS = $135.65/month (88% of bill)
-Account ID:         670833622671
+Billing Period: March 1-31, 2026
+Current Bill:   USD $153.39 (Pending)
+Bill Status:    PENDING
+Account ID:     670833622671
 ```
 
-### Cost Breakdown (March 2026)
 | Service | Cost |
 |---------|------|
 | Relational Database Service | $135.65 |
@@ -258,69 +230,56 @@ Account ID:         670833622671
 | Elastic Compute Cloud | $1.48 |
 | Virtual Private Cloud | $0.67 |
 | Key Management Service | $0.36 |
-| Other services | ~$12.88 |
+| Other | ~$11.88 |
 | **Total** | **$153.39** |
 
-### Immediate Cost-Saving Actions (If Needed)
-1. **Stop RDS instance** (saves ~$135/mo) - data preserved on storage
-2. **Stop EC2 instance** (saves ~$1.48/mo) - can restart when needed
-3. **Keep S3** (~$0.02/mo) - minimal cost, stores important files
+**Action Taken:** RDS and EC2 stopped March 6, 2026 to halt ongoing charges.
 
 ---
 
-## 11. Infrastructure Rebuild Checklist
+## 10. Infrastructure Rebuild Checklist
 
-If AWS account is suspended, to rebuild on a new account:
+### Using Free Services (No AWS Required)
 
-### Phase 1: Database (Most Critical)
-- [ ] Create new PostgreSQL RDS or use Railway/Supabase (free tier)
-- [ ] Restore from pg_dump file
-- [ ] Update connection string in app
+**Phase 1 — Database**
+- [ ] Sign up for Neon (neon.tech) or Supabase (supabase.com) — free PostgreSQL
+- [ ] Run pg_restore against new DB URL
+- [ ] Update DB_HOST, DB_NAME, DB_USER, DB_PASSWORD in app
 
-### Phase 2: Application Server
-- [ ] Launch new EC2 t3.micro or use Railway/Render (free tier)
-- [ ] Clone code from GitHub: `git clone https://github.com/Pac12lives808/dental-bids-mvp`
-- [ ] Install Node.js dependencies: `npm install`
-- [ ] Set environment variables (see section 3)
-- [ ] Start app: `npm start` or `pm2 start`
+**Phase 2 — Backend API**
+- [ ] Sign up for Railway (railway.app) or Render (render.com) — free Node.js
+- [ ] Connect GitHub repo: `Pac12lives808/dental-bids-mvp`
+- [ ] Set environment variables from .env.backup
+- [ ] Deploy
 
-### Phase 3: File Storage
-- [ ] Create new S3 bucket or use Cloudinary/Backblaze B2 (free tier)
-- [ ] Upload files from local backup
-- [ ] Update file upload URLs in app config
+**Phase 3 — File Storage**
+- [ ] Sign up for Cloudinary or Backblaze B2 — free file storage
+- [ ] Re-upload files from `aws-backups/s3-dental-bids-phi-2026/`
+- [ ] Update S3 URLs in app config
 
-### Free Alternative Platforms
-| Service | Free Alternative | Notes |
-|---------|-----------------|-------|
-| RDS PostgreSQL | Supabase, Railway, Neon | Free PostgreSQL |
-| EC2/Elastic Beanstalk | Railway, Render, Fly.io | Free Node.js hosting |
-| S3 | Cloudinary, Backblaze B2 | Free file storage |
-| Route53 | Cloudflare (free DNS) | Free DNS management |
+**Phase 4 — Static Demo**
+- [ ] Connect `Pac12lives808/dental-marketplace-demo` to Netlify
+- [ ] Deploy (free, no configuration needed)
 
 ---
 
-## 12. Emergency Contact & Access
+## 11. GitHub Repositories
 
-```
-AWS Account:    670833622671
-AWS Username:   ryan
-Region:         us-east-2 (US East Ohio)
-Console URL:    https://670833622671.signin.aws.amazon.com/console
-GitHub Repo:    https://github.com/Pac12lives808/dental-bids-mvp
-Demo Repo:      https://github.com/Pac12lives808/dental-marketplace-demo
-```
+| Repo | URL | Contents |
+|------|-----|----------|
+| dental-bids-mvp | https://github.com/Pac12lives808/dental-bids-mvp | Full app (TypeScript 94%, Node.js backend, React frontend) |
+| dental-marketplace-demo | https://github.com/Pac12lives808/dental-marketplace-demo | Static HTML demo, Netlify-ready |
 
 ---
 
-## 13. Immediate Action Items (Do These NOW)
+## 12. Immediate Manual Actions Required
 
-1. **[ ] Export database:** Run pg_dump command from section 1
-2. **[ ] Download S3 files:** Run aws s3 sync command from section 4  
-3. **[ ] Save password to password manager:** Copy from section 5
-4. **[ ] Download EC2 key pair:** Check EC2 > Key Pairs and download .pem file
-5. **[ ] Screenshot Elastic Beanstalk config:** Go to EB > Configuration and screenshot all settings
-6. **[ ] Create RDS snapshot manually:** Go to RDS > dental-bids-db > Actions > Take Snapshot
+1. **Run pg_dump** (Section 1) — export database to local file
+2. **Run aws s3 sync** (Section 4) — download all uploaded files
+3. **Save .env.backup** (Section 3) — store locally, NOT in GitHub
+4. **Download EC2 key pair** — EC2 > Key Pairs > download .pem
+5. **Search codebase for STRIPE_SECRET_KEY and JWT_SECRET** — add to .env.backup
 
 ---
 
-*Last updated: March 6, 2026 | Generated by automated AWS audit*
+*Generated March 6, 2026 | Dental Dash Pro AWS Account 670833622671*
