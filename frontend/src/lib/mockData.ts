@@ -25,7 +25,7 @@ export interface Bid {
 
 export const mockCases: DentalCase[] = [
   {
-    id: '1',
+    id: 'c001',
     patientName: 'John D.',
     treatment: 'Dental Implant',
     description: 'Need single tooth implant for upper left molar',
