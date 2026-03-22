@@ -10,8 +10,8 @@ export default function Header() {
         </Link>
         <div className="flex gap-6">
           <Link href="/patient/submit" className="text-gray-300 hover:text-white transition">For Patients</Link>
-          <Link href="/office/cases" className="text-gray-300 hover:text-white transition">For Offices</Link>
-          <Link href="/patient/bids" className="text-gray-300 hover:text-white transition">View Bids</Link>
+          <Link href="/office" className="text-gray-300 hover:text-white transition">For Offices</Link>
+          <Link href="/patient/bids" className="text-gray-300 hover:text-white transition">Patient View</Link>
         </div>
       </nav>
     </header>

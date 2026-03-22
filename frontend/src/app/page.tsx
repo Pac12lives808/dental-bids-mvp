@@ -17,7 +17,7 @@ export default function Home() {
             </div>
             <div className="flex space-x-4">
               <Link href="/patient/submit" className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition">Patient</Link>
-              <Link href="/office/cases" className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition">Dental Office</Link>
+              <Link href="/office" className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition">Dental Office</Link>
             </div>
           </div>
         </div>
@@ -46,7 +46,7 @@ export default function Home() {
                   I'm a Patient
                 </button>
               </Link>
-              <Link href="/office/cases">
+              <Link href="/office">
                 <button className="bg-slate-800 hover:bg-slate-700 text-white border-2 border-blue-500/50 px-8 py-4 rounded-lg font-semibold text-lg transition-all transform hover:scale-105">
                   I'm a Dental Office
                 </button>

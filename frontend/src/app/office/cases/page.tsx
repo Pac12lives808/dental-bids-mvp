@@ -3,11 +3,19 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import { mockCases } from '@/lib/mockData';
 
+const statusLabel: Record<string, string> = {
+  open: 'Open',
+  bidding: 'Open',
+  closed: 'Closed',
+};
+
 export default function OfficeCases() {
   const [estimateAmounts, setEstimateAmounts] = useState<{ [caseId: string]: string }>({});
+  const [submittedCases, setSubmittedCases] = useState<Set<string>>(new Set());
 
   const handleEstimateSubmit = (caseId: string) => {
-    console.log(`Estimate submitted for case ${caseId}: $${estimateAmounts[caseId]}`);
+    if ((estimateAmounts[caseId] ?? '') === '') return;
+    setSubmittedCases((prev) => new Set(prev).add(caseId));
   };
 
   return (
@@ -42,7 +50,7 @@ export default function OfficeCases() {
                 <p className="text-sm text-gray-500">Case #{dentalCase.id} • Submitted {dentalCase.createdAt}</p>
               </div>
               <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
-                {dentalCase.status}
+                {statusLabel[dentalCase.status] ?? dentalCase.status}
               </span>
             </div>
 
@@ -56,24 +64,32 @@ export default function OfficeCases() {
               <p className="text-sm text-gray-700">{dentalCase.description}</p>
             </div>
 
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="block text-sm font-semibold mb-1">Your Estimate Amount ($)</label>
-                <input
-                  type="number"
-                  placeholder="Enter estimate amount"
-                  value={estimateAmounts[dentalCase.id] || ''}
-                  onChange={(e) => setEstimateAmounts({ ...estimateAmounts, [dentalCase.id]: e.target.value })}
-                  className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-                />
+            {submittedCases.has(dentalCase.id) ? (
+              <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm font-medium">
+                <span className="text-base">✅</span>
+                <span>Estimate submitted! We&apos;ll notify you once the patient reviews.</span>
               </div>
-              <button
-                onClick={() => handleEstimateSubmit(dentalCase.id)}
-                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              >
-                Provide Estimate
-              </button>
-            </div>
+            ) : (
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold mb-1">Your Estimate Amount ($)</label>
+                  <input
+                    type="number"
+                    placeholder="Enter estimate amount"
+                    value={estimateAmounts[dentalCase.id] || ''}
+                    onChange={(e) => setEstimateAmounts({ ...estimateAmounts, [dentalCase.id]: e.target.value })}
+                    className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <button
+                  onClick={() => handleEstimateSubmit(dentalCase.id)}
+                  disabled={(estimateAmounts[dentalCase.id] ?? '') === ''}
+                  className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Provide Estimate
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
